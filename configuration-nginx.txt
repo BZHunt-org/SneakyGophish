@@ -1,0 +1,25 @@
+server {
+    listen    443 ssl;
+    ssl_certificate     /etc/letsencrypt/live/breizhev.ovh/fullchain.pem;
+    ssl_certificate_key  /etc/letsencrypt/live/breizhev.ovh/privkey.pem;
+    server_name    breizhev.ovh;
+
+    location /track {
+        include proxy_params;
+        proxy_pass http://127.0.0.1:2222;
+    }
+
+    location /ressources/ {
+        root /var/www/;
+    }
+
+    location / {
+	   # Règle permettant la réécriture des URL de la forme https://*/<ID> vers https://*?login-id=<ID>
+        rewrite ^/(.*)$ /?login-id=$1 break;
+        proxy_pass http://127.0.0.1:2222;  
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
